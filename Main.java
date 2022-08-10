@@ -1,8 +1,8 @@
 import java.util.*;
 
 class Library{
-    protected static ArrayList<Book> books = new ArrayList<>();
-    protected static HashMap<String, ArrayList<String>> AuthorAndBook = new HashMap<>();
+    static ArrayList<Book> books = new ArrayList<>();
+    static HashMap<String, ArrayList<String>> AuthorAndBook = new HashMap<>();
     public static HashMap<String, Integer> BookAndPrice = new HashMap<>();
     private static String title;
     private static int age_of_construction;
@@ -16,7 +16,7 @@ class Library{
     public static void getAuthorAndBook(){
         System.out.println(AuthorAndBook);
     }
-    public static void getBooks() {
+    public static void printBooks() {
         for(Book book : books){
             System.out.println(book.getName() + "(" + book.getAge() + ") : " + book.getPrice());
         }
@@ -24,7 +24,7 @@ class Library{
 
 }
 
-class Book extends Library{
+class Book{
     private String name;
     private String Author;
     private int age;
@@ -40,15 +40,15 @@ class Book extends Library{
 
     public String getName() {return name;}
     public void addToTheLibrary(){
-        books.add(this);
-        BookAndPrice.put(this.getName(), this.getPrice());
+        Library.books.add(this);
+        Library.BookAndPrice.put(this.getName(), this.getPrice());
         String author = this.getAuthor();
-        if (getAuthorsBooks(author) == null) {
+        if (Library.getAuthorsBooks(author) == null) {
             ArrayList <String> temp = new ArrayList<>();
             temp.add(this.name + "(" + this.age + ")");
-            AuthorAndBook.put(author, temp);
+            Library.AuthorAndBook.put(author, temp);
         }else{
-            getAuthorsBooks(author).add(this.name + "(" + this.age + ")");
+            Library.getAuthorsBooks(author).add(this.name + "(" + this.age + ")");
         }
     }
 }
