@@ -79,15 +79,15 @@ class Cashier implements Person, Worker{
         isWorking = false;
     }
     @Override
-    public void helpSomebody() {
-        System.out.println((isWorking) ? "Don't worry, I'll help you, what's wrong?" :
+    public void helpTheChild(String parent) {
+        System.out.println((isWorking) ? "Don't worry, I'll help you to find your parent, " + parent :
                 "Sorry, call somebody who is not busy 'cause I'm working right now");
     }
 }
 class Customer implements Person{
     private int age;
     private String name;
-    public int money;
+    private int money;
     private ArrayList<String> books = new ArrayList<>();
     public Customer(int money){this.money = money;}
     @Override
@@ -119,36 +119,56 @@ class Customer implements Person{
     }
     public ArrayList<String> getBooks(){return books;}
 }
+class CustomersChild extends Customer implements Person{
+    private final String parent = super.getName();
+    private int age;
+    private String name;
+    @Override
+    public void setName(String name) {this.name = name;}
+    @Override
+    public String getName() {return name;}
+    @Override
+    public void setAge(int age) {this.age = age;}
+    @Override
+    public int getAge() {return age;}
+
+    public CustomersChild(int money) {
+        super(money);
+    }
+    public void askForHelp(Cashier cashier){
+        cashier.helpTheChild(super.getName());
+    }
+}
 public class Main {
     public static void main(String[] args) {
-//        Book b = new Book();
-//        b.setName("Angry Birds");
-//        b.setAuthor("S.Hawking");
-//        b.setAge(1967);
-//        b.setPrice(1200);
-//        b.addToTheLibrary();
-//        Library.getAuthorAndBook();
-//        Cashier Alina = new Cashier();
-//        Alina.setName("Alina");
-//        Alina.setAge(25);
-//        Alina.setIsWorking(false);
-//        Alina.work(b);
-//        Alina.getFree();
-//        Book c = new Book();
-//        c.setName("The history of time");
-//        c.setAuthor("S.Hawking");
-//        c.setAge(1967);
-//        c.setPrice(1300);
-//        c.addToTheLibrary();
-//        Book e = new Book();
-//        e.setName("blabla");
-//        e.setAuthor("Assanali");
-//        e.setAge(1995);
-//        e.setPrice(1);
-//        e.addToTheLibrary();
-//        Library.getAuthorAndBook();
-//        Library.getBooks();
-//        Customer d = new Customer(1200);
-//        d.buy("Angry Birds", Alina);
+        Book b = new Book();
+        b.setName("Angry Birds");
+        b.setAuthor("S.Hawking");
+        b.setAge(1967);
+        b.setPrice(1200);
+        b.addToTheLibrary();
+        Library.getAuthorAndBook();
+        Cashier Alina = new Cashier();
+        Alina.setName("Alina");
+        Alina.setAge(25);
+        Alina.setIsWorking(false);
+        Alina.work(b);
+        Alina.getFree();
+        Book c = new Book();
+        c.setName("The history of time");
+        c.setAuthor("S.Hawking");
+        c.setAge(1967);
+        c.setPrice(1300);
+        c.addToTheLibrary();
+        Book e = new Book();
+        e.setName("blabla");
+        e.setAuthor("Assanali");
+        e.setAge(1995);
+        e.setPrice(1);
+        e.addToTheLibrary();
+        Library.getAuthorAndBook();
+        Library.printBooks();
+        Customer d = new Customer(1200);
+        d.buy("Angry Birds", Alina);
     }
 }
