@@ -117,11 +117,7 @@ class Customer implements Person{
             System.out.println("Enter the name of the book correctly");
         }
     }
-    public void getBooks(){
-        for(String book : books){
-            System.out.println(book);
-        }
-    }
+    public ArrayList<String> getBooks(){return books;}
 }
 public class Main {
     public static void main(String[] args) {
