@@ -103,7 +103,10 @@ class Customer implements Person{
             int price = Library.BookAndPrice.get(book);
             if(money >= price && !cashier.getIsWorking()){
                 System.out.printf("You have successfully bought the book for %d at cashier %s", price, cashier.getName());
+                System.out.println();
+                books.add(book);
                 money -= price;
+                System.out.printf("You have %d money left", money);
                 Library.BookAndPrice.remove(book, price);
             } else if (money >= price && cashier.getIsWorking()) {
                 System.out.println("The cashier is busy. Please, select the one who is free");
@@ -145,7 +148,7 @@ public class Main {
 //        e.addToTheLibrary();
 //        Library.getAuthorAndBook();
 //        Library.getBooks();
-//        Customer d = new Customer(1100);
+//        Customer d = new Customer(1200);
 //        d.buy("Angry Birds", Alina);
     }
 }
