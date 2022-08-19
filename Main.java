@@ -75,14 +75,14 @@ class Customer implements Person{
     private int age;
     private String name;
     private int money;
-    private int number;
+    private final int id;
     public Customer(int money){
-        this.money = money;
         DbFunctions db = new DbFunctions();
         Connection conn = db.connect_to_db("postgres", "postgres", "mysecretpassword");
-        db.insertCustomer(conn, "Customers", money);
-        number = db.readIdCustomer(conn, "Customers", money);
-        db.createTable(conn, String.format("Customer_%d", number));
+        db.insertCustomer(conn, "customers", money);
+        id = db.readIdCustomer(conn, "customers", money);
+        this.money = db.readMoneyCustomer(conn, "customers", id);
+        db.createTable(conn, String.format("Customer_%d", id));
     }
     @Override
     public int getAge() {return age;}
@@ -101,17 +101,18 @@ class Customer implements Person{
             if(money >= price && !cashier.getIsWorking()){
                 System.out.printf("You have successfully bought the book for %d at cashier %s", price, cashier.getName());
                 System.out.println();
-                money -= price;
-                System.out.printf("You have %d money left \n", money);
-                db.insertBookByName(conn, String.format("Customer_%d", number), book);
+                db.update_money(conn, "customers", id, price);
+                money = db.readMoneyCustomer(conn, "customers", id);
+                System.out.printf("Customer_%d has %d money left \n", id, money);
+                db.insertBookByName(conn, String.format("Customer_%d", id), book);
                 db.deleteRowByName(conn, "books", book);
             } else if (money >= price && cashier.getIsWorking()) {
-                System.out.println("The cashier is busy. Please, select the one who is free");
+                System.out.println("The cashier is busy. Please, select the one who is free \n");
             } else{
-                System.out.println("not enough money you broke ass");
+                System.out.println("not enough money you broke ass \n");
             }
         }catch (Exception e){
-            System.out.println("Enter the name of the book correctly");
+            System.out.println("Enter the name of the book correctly \n");
         }
     }
 }
@@ -139,8 +140,12 @@ public class Main {
     public static void create_tables(){
         DbFunctions db = new DbFunctions();
         Connection conn = db.connect_to_db("postgres", "postgres", "mysecretpassword");
+//        db.deleteTable(conn, "books");
+//        db.deleteTable(conn, "customers");
+//        db.deleteTable(conn, "customer_1");
+//        db.deleteTable(conn, "customer_2");
         db.createTable(conn, "books");
-        db.createTableCustomers(conn, "Customers");
+        db.createTableCustomers(conn, "customers");
     }
     public static void main(String[] args) {
         create_tables();
@@ -168,8 +173,18 @@ public class Main {
         e.setAge(1995);
         e.setPrice(1);
         e.addToTheLibrary();
+        Book g = new Book();
+        g.setName("aye");
+        g.setAuthor("aye");
+        g.setAge(1995);
+        g.setPrice(1);
+        g.addToTheLibrary();
         Customer d = new Customer(1200);
-        d.buy(b.getName(), Alina);
+        Customer f = new Customer(1299);
+        f.buy(b.getName(), Alina);
+        d.buy(e.getName(), Alina);
+        f.buy(g.getName(), Alina);
+
 
     }
 }
