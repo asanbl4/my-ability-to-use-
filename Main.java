@@ -1,32 +1,24 @@
+import java.sql.Connection;
 import java.util.*;
 
 class Library{
-    static ArrayList<Book> books = new ArrayList<>();
-    static HashMap<String, ArrayList<String>> AuthorAndBook = new HashMap<>();
-    public static HashMap<String, Integer> BookAndPrice = new HashMap<>();
     private static String title;
     private static int age_of_construction;
     public static void setAge_of_construction(int age_of_construction) {Library.age_of_construction = age_of_construction;}
     public static void setTitle(String title) {Library.title = title;}
     public static int getAge_of_construction() {return age_of_construction;}
     public static String getTitle() {return title;}
-    public static ArrayList<String> getAuthorsBooks(String k){
-        return AuthorAndBook.get(k);
-    }
-    public static void getAuthorAndBook(){
-        System.out.println(AuthorAndBook);
-    }
-    public static void printBooks() {
-        for(Book book : books){
-            System.out.println(book.getName() + "(" + book.getAge() + ") : " + book.getPrice());
-        }
+    public static void getBooks() {
+        DbFunctions db = new DbFunctions();
+        Connection conn = db.connect_to_db("postgres", "postgres", "mysecretpassword");
+        ArrayList<ArrayList<String>> books = db.readData(conn, "books");
     }
 
 }
 
 class Book{
     private String name;
-    private String Author;
+    private String author;
     private int age;
     private int price;
     public void setPrice(int price) {this.price = price;}
@@ -34,25 +26,20 @@ class Book{
     public int getPrice() {return price;}
     public void setAge(int age) {this.age = age;}
     public int getAge() {return age;}
-    public void setAuthor(String author) {Author = author;}
-    public String getAuthor() {return Author;}
+    public void setAuthor(String author) {this.author = author;}
+    public String getAuthor() {return author;}
     public void setName(String name) {this.name = name;}
 
     public String getName() {return name;}
     public void addToTheLibrary(){
-        Library.books.add(this);
-        Library.BookAndPrice.put(this.getName(), this.getPrice());
-        String author = this.getAuthor();
-        if (Library.getAuthorsBooks(author) == null) {
-            ArrayList <String> temp = new ArrayList<>();
-            temp.add(this.name + "(" + this.age + ")");
-            Library.AuthorAndBook.put(author, temp);
-        }else{
-            Library.getAuthorsBooks(author).add(this.name + "(" + this.age + ")");
-        }
+        DbFunctions db = new DbFunctions();
+        Connection conn = db.connect_to_db("postgres", "postgres", "mysecretpassword");
+        db.insert_row(conn, "books", this.name, this.author, this.age, this.price);
     }
 }
 class Cashier implements Person, Worker{
+    private final DbFunctions db = new DbFunctions();
+    private final Connection conn = db.connect_to_db("postgres", "postgres", "mysecretpassword");
     private String name;
     private int age;
     private boolean isWorking;
@@ -70,7 +57,7 @@ class Cashier implements Person, Worker{
     public boolean getIsWorking() {return isWorking;}
     @Override
     public void work(Book book) {
-        System.out.printf("The book costs %d", book.getPrice());
+        System.out.printf("The book costs %d", db.readPrice(conn, "books", book.getName()));
         System.out.println();
         isWorking = true;
     }
@@ -88,8 +75,15 @@ class Customer implements Person{
     private int age;
     private String name;
     private int money;
-    private ArrayList<String> books = new ArrayList<>();
-    public Customer(int money){this.money = money;}
+    private int number;
+    public Customer(int money){
+        this.money = money;
+        DbFunctions db = new DbFunctions();
+        Connection conn = db.connect_to_db("postgres", "postgres", "mysecretpassword");
+        db.insertCustomer(conn, "Customers", money);
+        number = db.readIdCustomer(conn, "Customers", money);
+        db.createTable(conn, String.format("Customer_%d", number));
+    }
     @Override
     public int getAge() {return age;}
     @Override
@@ -100,14 +94,17 @@ class Customer implements Person{
     public void setAge(int age) {this.age = age;}
     public void buy(String book, Cashier cashier){
         try{
-            int price = Library.BookAndPrice.get(book);
+            DbFunctions db = new DbFunctions();
+            Connection conn = db.connect_to_db("postgres", "postgres", "mysecretpassword");
+
+            int price = db.readPrice(conn, "books", book);
             if(money >= price && !cashier.getIsWorking()){
                 System.out.printf("You have successfully bought the book for %d at cashier %s", price, cashier.getName());
                 System.out.println();
-                books.add(book);
                 money -= price;
-                System.out.printf("You have %d money left", money);
-                Library.BookAndPrice.remove(book, price);
+                System.out.printf("You have %d money left \n", money);
+                db.insertBookByName(conn, String.format("Customer_%d", number), book);
+                db.deleteRowByName(conn, "books", book);
             } else if (money >= price && cashier.getIsWorking()) {
                 System.out.println("The cashier is busy. Please, select the one who is free");
             } else{
@@ -117,7 +114,6 @@ class Customer implements Person{
             System.out.println("Enter the name of the book correctly");
         }
     }
-    public ArrayList<String> getBooks(){return books;}
 }
 class CustomersChild extends Customer implements Person{
     private final String parent = super.getName();
@@ -140,14 +136,20 @@ class CustomersChild extends Customer implements Person{
     }
 }
 public class Main {
+    public static void create_tables(){
+        DbFunctions db = new DbFunctions();
+        Connection conn = db.connect_to_db("postgres", "postgres", "mysecretpassword");
+        db.createTable(conn, "books");
+        db.createTableCustomers(conn, "Customers");
+    }
     public static void main(String[] args) {
+        create_tables();
         Book b = new Book();
-        b.setName("Angry Birds");
+        b.setName("Angry birds");
         b.setAuthor("S.Hawking");
         b.setAge(1967);
         b.setPrice(1200);
         b.addToTheLibrary();
-        Library.getAuthorAndBook();
         Cashier Alina = new Cashier();
         Alina.setName("Alina");
         Alina.setAge(25);
@@ -166,9 +168,8 @@ public class Main {
         e.setAge(1995);
         e.setPrice(1);
         e.addToTheLibrary();
-        Library.getAuthorAndBook();
-        Library.printBooks();
         Customer d = new Customer(1200);
-        d.buy("Angry Birds", Alina);
+        d.buy(b.getName(), Alina);
+
     }
 }
